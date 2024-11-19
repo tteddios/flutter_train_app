@@ -28,41 +28,38 @@ class SeatPage extends StatelessWidget {
   }
 
   Widget _buildStationInfo(BuildContext context) {
-  final provider = context.watch<BookingProvider>();
-  return Padding(
-    padding: const EdgeInsets.all(20.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          provider.departureStation ?? '',
-          style: const TextStyle(
-            fontSize: 30,
-            fontWeight: FontWeight.bold,
-            color: Colors.purple,
+    final provider = context.watch<BookingProvider>();
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            provider.departureStation ?? '',
+            style: const TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: Colors.purple,
+            ),
           ),
-        ),
-        const SizedBox(width: 30),  // 간격 늘림
-        Container(
-          padding: const EdgeInsets.all(8),  // 아이콘 주변 패딩 추가
-          child: const Icon(
+          const SizedBox(width: 30),
+          const Icon(
             Icons.arrow_circle_right_outlined,
             size: 30,
           ),
-        ),
-        const SizedBox(width: 30),  // 간격 늘림
-        Text(
-          provider.arrivalStation ?? '',
-          style: const TextStyle(
-            fontSize: 30,
-            fontWeight: FontWeight.bold,
-            color: Colors.purple,
+          const SizedBox(width: 30),
+          Text(
+            provider.arrivalStation ?? '',
+            style: const TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: Colors.purple,
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   Widget _buildLegend() {
     return Row(
@@ -163,17 +160,34 @@ class SeatPage extends StatelessWidget {
   Widget _buildSeat(BuildContext context, String seatNumber) {
     final provider = context.watch<BookingProvider>();
     final isSelected = provider.selectedSeats.contains(seatNumber);
+    final isReserved = provider.isSeatReserved(seatNumber);
 
     return GestureDetector(
-      onTap: () => provider.toggleSeat(seatNumber),
+      onTap: isReserved ? null : () => provider.toggleSeat(seatNumber),
       child: Container(
         width: 50,
         height: 50,
         margin: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.purple : Colors.grey[300],
+          color: isReserved 
+              ? Colors.grey[400]
+              : isSelected 
+                  ? Colors.purple 
+                  : Colors.grey[300],
           borderRadius: BorderRadius.circular(8),
         ),
+        child: isReserved
+            ? const Center(
+                child: Text(
+                  '예약됨',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            : null,
       ),
     );
   }
@@ -209,36 +223,33 @@ class SeatPage extends StatelessWidget {
     );
   }
 
-void _showBookingDialog(BuildContext context) {
-  showCupertinoDialog(
-    context: context,
-    builder: (context) => CupertinoAlertDialog(
-      title: const Text('예매 하시겠습니까?'),
-      content: Text(
-        '좌석: ${context.read<BookingProvider>().selectedSeats.join(", ")}'
+  void _showBookingDialog(BuildContext context) {
+    final selectedSeats = context.read<BookingProvider>().selectedSeats.join(', ');
+    
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('예매 하시겠습니까?'),
+        content: Text('좌석: $selectedSeats'),
+        actions: [
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            child: const Text('취소', style: TextStyle(color: Colors.red)),
+            onPressed: () => Navigator.pop(context),
+          ),
+          CupertinoDialogAction(
+            child: const Text('확인', style: TextStyle(color: Colors.blue)),
+            onPressed: () {
+              final provider = context.read<BookingProvider>();
+              provider.confirmReservation();
+              Navigator.popUntil(
+                context,
+                (route) => route.isFirst,
+              );
+            },
+          ),
+        ],
       ),
-      actions: [
-        CupertinoDialogAction(
-          isDestructiveAction: true,
-          child: const Text('취소', style: TextStyle(color: Colors.red)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        CupertinoDialogAction(
-          child: const Text('확인', style: TextStyle(color: Colors.blue)),
-          onPressed: () {
-            // 예매 완료 후 상태 초기화
-            final provider = context.read<BookingProvider>();
-            provider.reset();  // 모든 선택 상태 초기화
-            
-            // 모든 화면을 팝하고 홈으로 이동
-            Navigator.popUntil(
-              context,
-              (route) => route.isFirst,  // 첫 번째 라우트(홈화면)까지 pop
-            );
-          },
-        ),
-      ],
-    ),
-  );
-}
+    );
+  }
 }
