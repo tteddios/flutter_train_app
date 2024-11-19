@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/booking_provider.dart';
+import '../providers/theme_provider.dart';
 import 'stations_list_page.dart';
 import 'seat_page.dart';
 
@@ -9,59 +10,67 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: isDarkMode ? Colors.black : Colors.grey[200],  // 배경색 수정
       appBar: AppBar(
         title: const Text('기차 예매'),
+        backgroundColor: isDarkMode ? Colors.black : Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(
+              isDarkMode ? Icons.light_mode : Icons.dark_mode,
+              color: isDarkMode ? Colors.white : Colors.black,
+            ),
+            onPressed: () {
+              context.read<ThemeProvider>().toggleTheme();
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildStationSelector(context),
+            Container(
+              height: 200,
+              decoration: BoxDecoration(
+                color: isDarkMode ? const Color.fromRGBO(66, 66, 69, 1) : Colors.white,  // 다크모드 컨테이너 색상 수정
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildStationSection(
+                      context,
+                      '출발역',
+                      context.watch<BookingProvider>().departureStation ?? '선택',
+                      true,
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 50,
+                    color: isDarkMode ? Colors.grey[700] : Colors.grey[300],
+                  ),
+                  Expanded(
+                    child: _buildStationSection(
+                      context,
+                      '도착역',
+                      context.watch<BookingProvider>().arrivalStation ?? '선택',
+                      false,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 20),
             _buildSeatSelectionButton(context),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildStationSelector(BuildContext context) {
-    final provider = context.watch<BookingProvider>();
-    
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-            child: _buildStationSection(
-              context,
-              '출발역',
-              provider.departureStation ?? '선택',
-              true,
-            ),
-          ),
-          Container(
-            width: 2,
-            height: 50,
-            color: Colors.grey[400],
-          ),
-          Expanded(
-            child: _buildStationSection(
-              context,
-              '도착역',
-              provider.arrivalStation ?? '선택',
-              false,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -72,6 +81,8 @@ class HomePage extends StatelessWidget {
     String station,
     bool isDeparture,
   ) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return InkWell(
       onTap: () => Navigator.push(
         context,
@@ -85,16 +96,18 @@ class HomePage extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: isDarkMode ? Colors.grey[500] : Colors.grey[400],
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             station,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 40,
+              fontWeight: FontWeight.w600,
+              color: isDarkMode ? Colors.white : Colors.black,
             ),
           ),
         ],
@@ -109,13 +122,13 @@ class HomePage extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
+      height: 56,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.purple,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(12),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 15),
         ),
         onPressed: canSelectSeat 
             ? () => Navigator.push(
@@ -129,7 +142,7 @@ class HomePage extends StatelessWidget {
           '좌석 선택',
           style: TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),

@@ -8,16 +8,34 @@ class SeatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
       appBar: AppBar(
-        title: const Text('좌석 선택'),
+        title: Text(
+          '좌석 선택',
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+            fontSize: 17,
+          ),
+        ),
+        backgroundColor: isDarkMode ? Colors.black : Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: isDarkMode ? Colors.white : Colors.black,
+            size: 18,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Column(
         children: [
           _buildStationInfo(context),
-          _buildLegend(),
-          _buildSeatHeader(),
+          _buildLegend(context),
+          _buildSeatHeader(context),
           Expanded(
             child: _buildSeatGrid(context),
           ),
@@ -29,8 +47,10 @@ class SeatPage extends StatelessWidget {
 
   Widget _buildStationInfo(BuildContext context) {
     final provider = context.watch<BookingProvider>();
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -43,9 +63,10 @@ class SeatPage extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 30),
-          const Icon(
-            Icons.arrow_circle_right_outlined,
+          Icon(
+            Icons.arrow_forward_rounded,
             size: 30,
+            color: isDarkMode ? Colors.white : Colors.black,
           ),
           const SizedBox(width: 30),
           Text(
@@ -61,18 +82,33 @@ class SeatPage extends StatelessWidget {
     );
   }
 
-  Widget _buildLegend() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildLegendItem(Colors.purple, '선택됨'),
-        const SizedBox(width: 20),
-        _buildLegendItem(Colors.grey[300]!, '선택안됨'),
-      ],
+  Widget _buildLegend(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildLegendItem(
+            context,
+            Colors.purple,
+            '선택됨',
+          ),
+          const SizedBox(width: 20),
+          _buildLegendItem(
+            context,
+            isDarkMode ? const Color.fromARGB(255, 101, 101, 108) : Colors.grey[300]!,
+            '선택안됨',
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildLegendItem(Color color, String label) {
+  Widget _buildLegendItem(BuildContext context, Color color, String label) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Row(
       children: [
         Container(
@@ -84,14 +120,22 @@ class SeatPage extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 4),
-        Text(label),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildSeatHeader() {
+  Widget _buildSeatHeader(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -102,7 +146,10 @@ class SeatPage extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 18),
+              style: TextStyle(
+                fontSize: 18,
+                color: isDarkMode ? Colors.white : Colors.black,
+              ),
             ),
           )),
           Container(width: 50),
@@ -112,7 +159,10 @@ class SeatPage extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 18),
+              style: TextStyle(
+                fontSize: 18,
+                color: isDarkMode ? Colors.white : Colors.black,
+              ),
             ),
           )),
           const SizedBox(width: 50),
@@ -124,7 +174,7 @@ class SeatPage extends StatelessWidget {
   Widget _buildSeatGrid(BuildContext context) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: 20,
+      itemCount: 10,
       itemBuilder: (context, rowIndex) {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -142,7 +192,12 @@ class SeatPage extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Text(
                   '${rowIndex + 1}',
-                  style: const TextStyle(fontSize: 18),
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Theme.of(context).brightness == Brightness.dark 
+                        ? Colors.white 
+                        : Colors.black,
+                  ),
                 ),
               ),
               ...['C', 'D'].map((col) => _buildSeat(
@@ -161,6 +216,7 @@ class SeatPage extends StatelessWidget {
     final provider = context.watch<BookingProvider>();
     final isSelected = provider.selectedSeats.contains(seatNumber);
     final isReserved = provider.isSeatReserved(seatNumber);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
       onTap: isReserved ? null : () => provider.toggleSeat(seatNumber),
@@ -170,18 +226,18 @@ class SeatPage extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: isReserved 
-              ? Colors.grey[400]
+              ? isDarkMode ? const Color.fromARGB(255, 67, 67, 69) : Colors.grey[400]
               : isSelected 
                   ? Colors.purple 
-                  : Colors.grey[300],
+                  : isDarkMode ? const Color.fromARGB(255, 101, 101, 108) : Colors.grey[300],
           borderRadius: BorderRadius.circular(8),
         ),
         child: isReserved
-            ? const Center(
+            ? Center(
                 child: Text(
                   '예약됨',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: isDarkMode ? const Color.fromARGB(255, 154, 149, 149) : Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -199,13 +255,13 @@ class SeatPage extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: SizedBox(
         width: double.infinity,
+        height: 55,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.purple,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 15),
           ),
           onPressed: provider.selectedSeats.isEmpty 
               ? null 
@@ -213,8 +269,8 @@ class SeatPage extends StatelessWidget {
           child: const Text(
             '예매 하기',
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
           ),
@@ -234,11 +290,11 @@ class SeatPage extends StatelessWidget {
         actions: [
           CupertinoDialogAction(
             isDestructiveAction: true,
-            child: const Text('취소', style: TextStyle(color: Colors.red)),
+            child: const Text('취소'),
             onPressed: () => Navigator.pop(context),
           ),
           CupertinoDialogAction(
-            child: const Text('확인', style: TextStyle(color: Colors.blue)),
+            child: const Text('확인'),
             onPressed: () {
               final provider = context.read<BookingProvider>();
               provider.confirmReservation();
